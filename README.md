@@ -211,6 +211,20 @@ def AllRecords(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+def Records(request):
+    if request.method == 'GET':
+        pass
+    elif request.method == 'POST':
+        pass
+    elif request.method == 'PUT':
+        pass
+    elif request.method == 'PATCH':
+        pass
+    else:
+        pass
+
+
 @api_view(['POST'])
 def SaveRecords(request):
     if request.method == 'POST':
