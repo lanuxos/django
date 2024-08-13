@@ -183,3 +183,86 @@ SECRET_KEY='secretKey'
   - logging
   - admins and managers
   - customize the default error views
+
+# Django Rest Framework
+- Install Django Rest Framework `pip install djangorestframework`
+- serializers.py
+```
+from rest_framework import serializers
+from .models import *
+
+class SomeModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModelName
+        fields = ('__all__')
+```
+- views.py
+```
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
+from .serializers import *
+from .models import *
+
+@api_view(['GET'])
+def AllRecords(request):
+    allRecords = SomeModel.objects.all()
+    serializer = SomeModelSerializer(allRecords, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def SaveRecords(request):
+    if request.method == 'POST':
+        serializer = SomeModelSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+```
+- urls.py
+```
+from django.urls import path
+from .views import *
+
+urlpatterns = [
+  path('api/all', AllRecords),
+  path('api/new', SaveRecords),
+]
+```
+
+# Django Rest Framework Simple JWT Authorization
+- views.py
+```
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
+
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+class MatabaseAPI(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        content = {'message': 'test matabase api with jwt'}
+        return Response(content)
+```
+- urls.py
+```
+from django.urls import path
+from .views import *
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    )
+
+urlpatterns = [
+    path('api/token/', TokenObtainPairView.as_view(), name='tokenObtainPair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/test/', MatabaseAPI.as_view(), name='api_test'),
+]
+```
+
