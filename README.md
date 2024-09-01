@@ -135,6 +135,55 @@ SECRET_KEY='secretKey'
   # or getting path without parameters
   <a href="{% url django.contrib.auth.views.login %}?next={{request.path }}"/>
   ```
+- ImageField/photo management
+  - settings.py
+  ```
+  # set media/static url, staticfiles directory and media root
+  STATIC_URL = 'static/'
+  STATICFILES_DIRS = [ BASE_DIR / 'static' ]
+
+  MEDIA_URL = '/media/'
+  MEDIA_ROOT = BASE_DIR / 'media'
+  ```
+  - urls.py
+  ```
+  # on application's urls.py add
+  # for image/media file display through url
+  from . import settings
+  from django.contrib.staticfiles.urls import static
+  from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
+  urlpatterns += staticfiles_urlpatterns()
+  urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+  ```
+  - models.py
+  ```
+  class UserProfile(models.Model):
+    username = models.OneToOneField(User, on_delete=models.CASCADE, help_text="ຊື່ຜູ້ໃຊ້")
+
+    def pathAndName(instance, filename):
+        upload_to = 'images/userProfile'
+        ext = filename.split('.')[-1]
+        # get filename
+        if instance.pk:
+            filename = '{}.{}'.format(instance.pk, ext)
+        else:
+            # set filename as random string
+            filename = '{}.{}'.format(uuid4().hex, ext)
+        # return the whole path to the file
+        return os.path.join(upload_to, filename)
+
+    photo = models.ImageField(upload_to=pathAndName, blank=True, null=True, default="media/default.png", help_text="ຮູບພາບ", verbose_name="ຮູບພາບ")
+  ```
+  - template.html
+  ```
+  {% if object_list is not None %}
+  <img src="{{ object_list.photo.url }}" alt="photoUrl" width="30" height="40">
+  {% else %}
+  <img src="{% static '../media/default.png' %}" alt="photoUrl" width="30" height="40">
+  {% endif %}
+  ```
+
 - misc
 
 # Python's note
