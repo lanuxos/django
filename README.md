@@ -52,7 +52,7 @@ SECRET_KEY='secretKey'
 # DB_PORT=
 ```
 
-# Django's note
+# Django Function Based View notes
 - POST request's data
   ```
   if request.method == 'POST':
@@ -186,54 +186,224 @@ SECRET_KEY='secretKey'
 
 - misc
 
-# Python's note
-- max func
-  ```
-  # python max function, max(ITERABLE, key=int, default='No value to compare')
-  list = ['09', '03', '01', '5', '07']
-  emptyList = []
-  max(list) # return '5'
-  max(list, key=int) # return '09'
-  max(emptyList, default='No value to compare') # return 'No value to compare'
-  ```
-- dictionary iteration with index
-  ```
-  dict = {
-      'key1': 'value1',
-      'key2': 'value2',
-      'key3': 'value3',
-  }
-  for index, (key, value) in enumerate(dict.items()):
-      print(index, key, value)
-  ```
-- 
+# Django Class Based View notes
+- CRUD
+  - views.py
+```
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-# [Deployment checklist](https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/)
-- check --deploy
-  `python manage.py check --deploy`
-- critical settings
-  - SECRET_KEY
-  - DEBUG
-- environment specific settings
-  - ALLOWED_HOSTS
-  - CACHES
-  - DATABASES
-  - EMAIL_BACKEND
-  - STATIC_ROOT & STATIC_URL
-  - MEDIA_ROOT & MEDIA_URL
-- https
-  - CSRF_COOKIE_SECURE
-  - SESSION_COOKIE_SECURE
-- performance optimization
-  - sessions
-  - CONN_MAX_AGE
-  - templates
-- error reporting
-  - logging
-  - admins and managers
-  - customize the default error views
 
-# Django Rest Framework
+# Create
+# create MODELNAME_form.html in template folder
+class SomeCreateView(CreateView):
+    model = MODEL_NAME
+    fields = [
+        "modelField1",
+        "modelField2",
+        "modelField3",
+    ]
+    success_url = "somewhereURLName"
+
+
+# Create with custom template, no need to create
+# MODELNAME_form.html in template directory
+class SomeCreateViewWithCustomTemplate(CreateView):
+    model = MODEL_NAME
+    fields = [
+        "modelField1",
+        "modelField2",
+        "modelField3",
+    ]
+    success_url = "somewhereURLName"
+
+
+# Read
+# ListView return "object_list" context
+# create MODELNAME_list.html in template folder
+class SomeListView(ListView):
+    model = MODEL_NAME
+
+
+# DetailView return "object" context
+# urlpattern MUST specific <pk>
+class SomeDetailView(DetailView):
+    model = MODEL_NAME
+
+
+# Update
+# create MODELNAME_form.html in template directory
+class SomeUpdateView(UpdateView):
+    model = MODEL_NAME
+    success_url = "SOME_URL_NAME"
+
+
+# update view with permission/login
+class SomeUpdateView(LoginRequiredMixin, UpdateView):
+    model = MODEL_NAME
+    success_url = "SOME_URL_NAME"
+
+
+# Delete
+# create MODELNAME_confirm_delete.html in template directory
+class SomeDeleteView(LoginRequiredMixin, DeleteView):
+    model = MODEL_NAME
+    success_url = "SOME_URL_NAME"
+```
+  - template.html
+    - MODEL_list.html
+```
+{% extends 'base.html' %}
+
+{% block content %}
+    {% for object in object_list %}
+        {{ object.FIELD }}
+    {% endfor %}
+{% endblock content %}
+```
+
+    - MODEL_detail.html
+```
+{% extends 'base.html' %}
+
+{% block content %}
+    {{ object.FIELD }}
+{% endblock content %}
+```
+
+    - MODEL_form.html
+```
+{% extends 'base.html' %}
+
+{% block content %}
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Save" class="btn btn-sm btn-success">
+    </form>
+{% endblock content %}
+```
+
+    - MODEL_confirm_delete.html
+```
+{% extends 'base.html' %}
+
+{% block content %}
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <p>Are you sure, you want to delete "{{ object.title }}"</p>
+        <input type="submit" value="Confirm" class="btn btn-sm btn-danger">
+    </form>
+{% endblock content %}
+```
+
+  - urls.py
+```
+urlpatterns = [
+    path("listview/", SomeListView.as_view(), name="listViewPage"),
+    path("detail/<pk>", SomeDetailView.as_view(), name="DetailViewPage"),
+    path("create/", SomeCreateView.as_view(), name="CreateViewPage"),
+    path("update/<pk>", SomeUpdateView.as_view(), name="updateViewPage"),
+    path("delete/<pk>", SomeDeleteView.as_view(), name="deleteViewPage"),
+]
+```
+
+- get_context_data() # for additional context data
+  - views.py
+```
+class SomeCreateView(CreateView):  
+    model = MODEL_NAME
+    fields = [
+        "modelField1",
+        "modelField2",
+        "modelField3",
+    ]
+    success_url = "somewhereURLName"
+
+    def get_context_data(self, **kwargs: Any):
+        context = super().get_context_data(**kwargs)
+        context['KEY'] = ADDITIONAL_DATA
+        return context
+```
+
+- get_queryset() # for specific context data
+  - views.py
+```
+class SomeListView(ListView):  
+    model = MODEL_NAME
+
+    def get_queryset(self, **kwargs: Any):
+        return MODEL_NAME.objects.filter(FILTER_FIELD=FILTER_KEY)
+        # return MODEL.objects.filter(username=self.kwargs["username"])
+        # username come along with parameter request
+```
+
+- paginarion
+  - views.py
+```
+from django.core.paginator import Paginator # Paginator
+# create MODELNAME_list.html in template folder
+class SomeListView(ListView):  
+    paginate_by = 10    # pagination
+    model = MODEL_NAME
+```
+
+- crispy_form
+  - settings.py
+```
+INSTALLED_APPS = [
+    "crispy_forms",
+    "crispy_bootstrap5",
+]
+
+# crispy_forms_settings
+CRISPY_ALLOWD_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+```
+
+  - template1.html
+```
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form | crispy }}
+        <input type="submit" value="Save" class="btn btn-sm btn-success">
+    </form>
+{% endblock content %}
+```
+
+  - template2.html
+```
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-sm-12 col-md-3">
+                {{ form.FIELD1|as_crispy_field }}
+            </div>
+            <div class="col-sm-12 col-md-3">
+                {{ form.FIELD2|as_crispy_field }}
+            </div>
+            <div class="col-sm-12 col-md-3">
+                {{ form.FIELD3|as_crispy_field }}
+            </div>
+            <div class="col-sm-12 col-md-3 d-flex align-items-center">
+                <input type="submit" value="Save" class="form-control btn btn-sm btn-success">
+            </div>
+        </div>
+    </form>
+{% endblock content %}
+```
+
+# Django Rest Framework notes
 - Install Django Rest Framework `pip install djangorestframework`
 - serializers.py
 ```
@@ -294,8 +464,8 @@ urlpatterns = [
 ]
 ```
 
-# Django Rest Framework Simple JWT Authorization
-- views.py
+- Django Rest Framework Simple JWT Authorization
+  - views.py
 ```
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -313,7 +483,7 @@ class MatabaseAPI(APIView):
         content = {'message': 'test matabase api with jwt'}
         return Response(content)
 ```
-- urls.py
+  - urls.py
 ```
 from django.urls import path
 from .views import *
@@ -328,4 +498,52 @@ urlpatterns = [
     path('api/test/', MatabaseAPI.as_view(), name='api_test'),
 ]
 ```
+
+# [Deployment checklist](https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/)
+- check --deploy
+  `python manage.py check --deploy`
+- critical settings
+  - SECRET_KEY
+  - DEBUG
+- environment specific settings
+  - ALLOWED_HOSTS
+  - CACHES
+  - DATABASES
+  - EMAIL_BACKEND
+  - STATIC_ROOT & STATIC_URL
+  - MEDIA_ROOT & MEDIA_URL
+- https
+  - CSRF_COOKIE_SECURE
+  - SESSION_COOKIE_SECURE
+- performance optimization
+  - sessions
+  - CONN_MAX_AGE
+  - templates
+- error reporting
+  - logging
+  - admins and managers
+  - customize the default error views
+
+# Python's note
+- max func
+  ```
+  # python max function, max(ITERABLE, key=int, default='No value to compare')
+  list = ['09', '03', '01', '5', '07']
+  emptyList = []
+  max(list) # return '5'
+  max(list, key=int) # return '09'
+  max(emptyList, default='No value to compare') # return 'No value to compare'
+  ```
+- dictionary iteration with index
+  ```
+  dict = {
+      'key1': 'value1',
+      'key2': 'value2',
+      'key3': 'value3',
+  }
+  for index, (key, value) in enumerate(dict.items()):
+      print(index, key, value)
+  ```
+- 
+
 
