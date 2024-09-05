@@ -188,6 +188,16 @@ SECRET_KEY='secretKey'
 
 # Django Class Based View notes
 - CRUD
+    - models.py
+```
+from django.contrib.auth.models import User
+from django.db import models
+
+
+class SomeModel(models.Model):
+    someField = models.CharField(max_length=255)
+    createdBy = models.ForeignKey(User, on_delete=models.CASCADE)
+```
   - views.py
 ```
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -219,6 +229,14 @@ class SomeCreateViewWithCustomTemplate(CreateView):
     ]
     success_url = "somewhereURLName"
 
+# Create with request.user
+class SomeCreateView(LoginRequiredMixin, CreateView):
+    model = SomeModel
+    fields = ["someField"]
+
+    def form_valid(self, form):
+        form.instance.createdBy = self.request.user
+        return super().form_valid(form)
 
 # Read
 # ListView return "object_list" context
@@ -363,7 +381,7 @@ CRISPY_ALLOWD_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 ```
 
-  - template1.html
+  - template1.html [crispy filter]
 ```
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
@@ -377,7 +395,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 {% endblock content %}
 ```
 
-  - template2.html
+  - template2.html [as_crispy_field filter]
 ```
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
@@ -403,7 +421,8 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 {% endblock content %}
 ```
 
-# Django Rest Framework notes
+
+# Django Rest Framework Function Based View notes
 - Install Django Rest Framework `pip install djangorestframework`
 - serializers.py
 ```
@@ -462,6 +481,48 @@ urlpatterns = [
   path('api/all', AllRecords),
   path('api/new', SaveRecords),
 ]
+```
+
+# Django Rest Framework Class Based View notes
+- CRUD
+  - views.py
+```
+# Create
+from django.http import JsonResponse
+from django.views.generic.edit import CreateView
+from myapp.models import Author
+
+
+class JsonableResponseMixin:
+    """
+    Mixin to add JSON support to a form.
+    Must be used with an object-based FormView (e.g. CreateView)
+    """
+
+    def form_invalid(self, form):
+        response = super().form_invalid(form)
+        if self.request.accepts("text/html"):
+            return response
+        else:
+            return JsonResponse(form.errors, status=400)
+
+    def form_valid(self, form):
+        # We make sure to call the parent's form_valid() method because
+        # it might do some processing (in the case of CreateView, it will
+        # call form.save() for example).
+        response = super().form_valid(form)
+        if self.request.accepts("text/html"):
+            return response
+        else:
+            data = {
+                "pk": self.object.pk,
+            }
+            return JsonResponse(data)
+
+
+class AuthorCreateView(JsonableResponseMixin, CreateView):
+    model = SomeModel
+    fields = ["someField"]
 ```
 
 - Django Rest Framework Simple JWT Authorization
