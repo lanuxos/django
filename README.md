@@ -421,6 +421,18 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 {% endblock content %}
 ```
 
+- Mixins
+  - SingleObjectMixin
+    - views.py
+```
+
+```
+    - urls.py
+```
+
+```
+  - SingleObjectMixin with ListView
+
 
 # Django Rest Framework Function Based View notes
 - Install Django Rest Framework `pip install djangorestframework`
