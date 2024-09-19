@@ -18,7 +18,7 @@ Django Initial Project
 # (django-environ quick start)[https://django-environ.readthedocs.io/en/latest/quickstart.html#usage]
 
 # Separate settings file for different environments [base, development, production]
-```
+```python
 from pathlib import Path
 from .base import *
 import environ
@@ -54,7 +54,7 @@ SECRET_KEY='secretKey'
 
 # Django Function Based View notes
 - POST request's data
-  ```
+  ```python
   if request.method == 'POST':
       data = request.POST.copy()
       eachData = data.get("Dom's name", None)
@@ -66,7 +66,7 @@ SECRET_KEY='secretKey'
 - model's id reference
 - `self.id`
 - foreign key properties querySet filtering
-  ```
+  ```python
   # django querySet filtering via foreign key properties (foreign key value)
   class Author(models.Model):
     name = models.CharField(max_length=100)
@@ -78,7 +78,7 @@ SECRET_KEY='secretKey'
   book = Book.objects.filter(author__name='FOO') # filter book via author's name
   ```
 - UniqueConstraint
-  ```
+  ```python
   # as below code, the model will prevent duplication of the field 
   # to ensures each room can only be booked once for each date
   class Meta:
@@ -122,14 +122,14 @@ SECRET_KEY='secretKey'
   ]
   ```
 - registering admin models at once
-  ```
+  ```python
   from django.apps import apps
   app = apps.get_app_config('APP_NAME')
   for model_name, model in app.models.items():
       admin.site.register(model)
   ```
 - redirect to last requested page after login
-  ```
+  ```html
   # to get full urls with param/values
   <a href="{% url django.contrib.auth.views.login %}?next={{request.get_full_path|urlencode }}"/>
   # or getting path without parameters
@@ -137,7 +137,7 @@ SECRET_KEY='secretKey'
   ```
 - ImageField/photo management
   - settings.py
-  ```
+  ```python
   # set media/static url, staticfiles directory and media root
   STATIC_URL = 'static/'
   STATICFILES_DIRS = [ BASE_DIR / 'static' ]
@@ -146,7 +146,7 @@ SECRET_KEY='secretKey'
   MEDIA_ROOT = BASE_DIR / 'media'
   ```
   - urls.py
-  ```
+  ```python
   # on application's urls.py add
   # for image/media file display through url
   from . import settings
@@ -157,7 +157,7 @@ SECRET_KEY='secretKey'
   urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
   ```
   - models.py
-  ```
+  ```python
   class UserProfile(models.Model):
     username = models.OneToOneField(User, on_delete=models.CASCADE, help_text="ຊື່ຜູ້ໃຊ້")
 
@@ -185,7 +185,7 @@ SECRET_KEY='secretKey'
   ```
 
 - request IP
-```
+```python
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     # x_forwared_for return a list of ip(s)
@@ -201,7 +201,7 @@ def get_client_ip(request):
 # Django Class Based View notes
 - CRUD
     - models.py
-```
+```python
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -211,7 +211,7 @@ class SomeModel(models.Model):
     createdBy = models.ForeignKey(User, on_delete=models.CASCADE)
 ```
   - views.py
-```
+```python
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -330,7 +330,7 @@ class SomeDeleteView(LoginRequiredMixin, DeleteView):
 ```
 
   - urls.py
-```
+```python
 urlpatterns = [
     path("listview/", SomeListView.as_view(), name="listViewPage"),
     path("detail/<pk>", SomeDetailView.as_view(), name="DetailViewPage"),
@@ -342,7 +342,7 @@ urlpatterns = [
 
 - get_context_data() # for additional context data
   - views.py
-```
+```python
 class SomeCreateView(CreateView):  
     model = MODEL_NAME
     fields = [
@@ -360,7 +360,7 @@ class SomeCreateView(CreateView):
 
 - get_queryset() # for specific context data
   - views.py
-```
+```python
 class SomeListView(ListView):  
     model = MODEL_NAME
 
@@ -372,7 +372,7 @@ class SomeListView(ListView):
 
 - paginarion
   - views.py
-```
+```python
 from django.core.paginator import Paginator # Paginator
 # create MODELNAME_list.html in template folder
 class SomeListView(ListView):  
@@ -382,7 +382,7 @@ class SomeListView(ListView):
 
 - crispy_form
   - settings.py
-```
+```python
 INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
@@ -436,7 +436,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 - Mixins
   - SingleObjectMixin
     - views.py
-```
+```python
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.urls import reverse
 from django.views import View
@@ -462,7 +462,7 @@ class RecordInterestView(SingleObjectMixin, View):
         )
 ```
     - urls.py
-```
+```python
 from django.urls import path
 from books.views import RecordInterestView
 
@@ -481,7 +481,7 @@ urlpatterns = [
 # Django Rest Framework Function Based View notes
 - Install Django Rest Framework `pip install djangorestframework`
 - serializers.py
-```
+```python
 from rest_framework import serializers
 from .models import *
 
@@ -491,7 +491,7 @@ class SomeModelSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 ```
 - views.py
-```
+```python
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -529,7 +529,7 @@ def SaveRecords(request):
         return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 ```
 - urls.py
-```
+```python
 from django.urls import path
 from .views import *
 
@@ -542,7 +542,7 @@ urlpatterns = [
 # Django Rest Framework Class Based View notes
 - CRUD
   - views.py
-```
+```python
 # Create
 from django.http import JsonResponse
 from django.views.generic.edit import CreateView
@@ -583,7 +583,7 @@ class AuthorCreateView(JsonableResponseMixin, CreateView):
 
 - Django Rest Framework Simple JWT Authorization
   - views.py
-```
+```python
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -601,7 +601,7 @@ class MatabaseAPI(APIView):
         return Response(content)
 ```
   - urls.py
-```
+```python
 from django.urls import path
 from .views import *
 from rest_framework_simplejwt.views import (
@@ -643,7 +643,7 @@ urlpatterns = [
 
 # Python's note
 - max func
-  ```
+  ```python
   # python max function, max(ITERABLE, key=int, default='No value to compare')
   list = ['09', '03', '01', '5', '07']
   emptyList = []
@@ -652,7 +652,7 @@ urlpatterns = [
   max(emptyList, default='No value to compare') # return 'No value to compare'
   ```
 - dictionary iteration with index
-  ```
+  ```python
   dict = {
       'key1': 'value1',
       'key2': 'value2',
