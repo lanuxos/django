@@ -664,3 +664,20 @@ urlpatterns = [
 - 
 
 
+# JavaScript's note
+- toggle dark mode switch
+```html
+<div class="form-check form-switch">
+  <input class="form-check-input mx-1" type="checkbox" role="switch" id="dark-mode-switch" checked>
+  <label class="form-check-label mx-1" for="dark-mode-switch">Light/Dark</label>
+</div>
+```
+``` javascript
+document.getElementById("dark-mode-switch").addEventListener("change", () => {
+            if (document.getElementById("dark-mode-switch").checked == true) {
+                document.documentElement.setAttribute("data-bs-theme", "dark");
+            } else {
+                document.documentElement.setAttribute("data-bs-theme", "light");
+            }
+        });
+```
